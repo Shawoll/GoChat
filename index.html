@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>WebUp Chat</title>
+    </head>
+    <body>
+ 
+        <div class="container">
+            <div id="list" class="list"></div>
+            <div class="input">
+                <div class="input-name">
+                    <input type="text" id="input-name" placeholder="Username">
+                </div>
+                <div class="input-content">
+                    <input type="text" id="input-content" placeholder="Write a message...">
+                </div>
+            </div>
+        </div>
+ 
+        <script type="text/javascript">
+ 
+            var ws = new WebSocket("ws://" + location.host + "/socket");
+ 
+            ws.addEventListener("open", function () {
+                append("SYSTEM", "Connection opened");
+            });
+ 
+            ws.addEventListener("close", function () {
+                append("SYSTEM", "Connection closed");
+            });
+ 
+            ws.addEventListener("error", function () {
+                append("SYSTEM", "WebSocket Error");
+            });
+ 
+            ws.addEventListener("message", function (event) {
+                var message = JSON.parse(event.data);
+                append(message.name, message.content);
+            });
+ 
+            var $inputName = document.getElementById("input-name");
+            var $inputContent = document.getElementById("input-content");
+ 
+            $inputContent.addEventListener("keydown", function (event) {
+                if (event.code === "Enter") {
+                    ws.send(JSON.stringify({
+                        name: $inputName.value,
+                        content: $inputContent.value,
+                    }));
+                    $inputContent.value = "";
+                }
+            });
+ 
+            function append(name, content) {
+ 
+                var $name = document.createElement("DIV");
+                $name.className = "message-name";
+                $name.textContent = name + ":\u00A0";
+ 
+                var $content = document.createElement("DIV");
+                $content.className = "message-content";
+                $content.textContent = content;
+ 
+                var $message = document.createElement("DIV");
+                $message.className = "message";
+                $message.appendChild($name);
+                $message.appendChild($content);
+ 
+                var $root = document.getElementById("list");
+ 
+                if ($root.childNodes.length > 0) {
+                    $root.insertBefore($message, $root.childNodes.item(0));
+                } else {
+                    $root.appendChild($message);
+                }
+ 
+            }
+ 
+        </script>
+ 
+        <style type="text/css">
+            html, body {
+                border: 0 none;
+                overflow: hidden;
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+            }
+ 
+            .container {
+                display: flex;
+                flex-flow: column nowrap;
+                width: 100%;
+                height: 100%;
+            }
+ 
+            .list {
+                flex: 1 1;
+                min-height: 200px;
+                overflow: auto;
+                box-sizing: border-box;
+                padding: 15px;
+            }
+ 
+            .input {
+                flex: 0 0 60px;
+                display: flex;
+                flex-flow: row nowrap;
+                box-sizing: border-box;
+                padding: 15px 10px;
+                border-top: 1px solid black;
+            }
+ 
+            .input-name {
+                flex: 0 0 150px;
+                box-sizing: border-box;
+                padding: 0 5px;
+            }
+ 
+            .input-name input,
+            .input-content input {
+                width: 100%;
+            }
+ 
+            .input-content {
+                flex: 1 1;
+                box-sizing: border-box;
+                padding: 0 5px;
+            }
+ 
+            .message {
+                display: flex;
+                flex-flow: row nowrap;
+                align-items: flex-start;
+                box-sizing: border-box;
+                padding: 5px 0;
+            }
+ 
+            .message-name {
+                font-weight: bold;
+            }
+ 
+        </style>
+ 
+    </body>
+</html>
